@@ -1,0 +1,10 @@
+{
+    "name": "nodejs sample app",
+    "description": "Testing app via ansible",
+    "author": "Rup G",
+    "dependencies": {
+        "express": "latest"
+    },
+    "engine": "node >= 0.10.6"
+
+}

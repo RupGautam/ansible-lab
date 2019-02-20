@@ -1,0 +1,51 @@
+---
+- hosts: all
+  become: yes
+  vars: 
+    node_version: 7
+    node_apps_location: /usr/local/opt/node
+  tasks: 
+  # - name: Import Keys.
+  #   rpm_key: "key={{ item }} state=present"
+  #   with_items:
+  #   - "https://fedoraproject.org/static/0608B895.txt"
+  #   - "http://rpms.famillecollet.com/RPM-GPG-KEY-remi"
+  # - name: Install EPL and Remi repo
+  #   command: "rpm -Uvh {{item.href }} creates={{ item.creates}}"
+  #   with_items:
+  #     - {
+  #       href: "http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm",
+  #       creates: "/etc/yum.repos.d/epel.repo"
+  #     }
+  #     - {
+  #       href: "http://rpms.remirepo.net/enterprise/remi-release-7.rpm",
+  #       creates: "/etc/yum.repos.d/remi.repo"
+  #     }
+  # - name: Install Node.js and npm 
+  #   yum: name=npm state=present enablerepo=epel
+  # - name: Install Forever 
+  #   npm: name=forever global=yes state=latest
+    - name: Install Node.js and npm.
+      yum: name=npm state=present enablerepo=epel
+
+    - name: Install Forever (to run our Node.js app).
+      npm: name=forever global=yes state=present
+
+    - name: Ensure Node.js app folder exists.
+      file: "path={{ node_apps_location }} state=directory"
+
+    - name: Copy example Node.js app to server.
+      copy: "src=app dest={{ node_apps_location }}"
+
+    - name: Install app dependencies defined in package.json.
+      npm: "path={{ node_apps_location }}/app"
+
+    - name: Check list of running Node.js apps.
+      command: forever list
+      register: forever_list
+      changed_when: false
+
+    - name: Start example Node.js app.
+      command: "forever start {{ node_apps_location }}/app/app.js"
+      when: "forever_list.stdout.find(node_apps_location + '/app/app.js') == -1"
+
