@@ -18,14 +18,85 @@
       - php-mysql
       - php-mbstring
 
-- name: 3. Installing MySQL server
-  shell: apt-get remove mysql-server* mariadb-*
 
-- name: 3. Start Apache, MySQL and PHP
-  service: 
-    name: {{ item }} 
-    state: started 
-    enabled: yes
+- name: 3. Installing MySQL server
+  apt:
+    state: present
+    name:
+      - mysql-server
+      - python-mysqldb
+
+- name: 4. Start Apache, MySQL and PHP
+  service: name= {{ item }} state=started enabled=yes 
   with_items:
     - apache2
     - mysql
+
+- name: 5. Enable Apache module
+  apache2_module: name=rewrite state=present
+  notify: restart apache
+
+- name: 6. Adding Vhost for Drupal
+  template:
+    src: "files/drupal.dev.conf.js"
+    dest: "/etc/apache2/sites-available/{{ domain }}.dev.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: restart apache
+
+- name: 7. Sym link vhost to enabled-sites
+  file:
+    src: "/etc/apache2/sites-available/{{ domain }}.dev.conf"
+    dest: "/etc/apache2/sites-enabled/{{ domain }}.dev.conf"
+    state: link
+  notify: restart apache
+
+- name: Remove default vhost file
+  file:
+    path: "/etc/apache2/sites-enabled/000-default.conf"
+    state: absent
+  notify: restart apache
+
+- name: Opcache memory setting
+  lineinfile:
+    dest: "/etc/php/7.2/apache2/conf.d/10-opcache.ini"
+    regexp: "^opcache.memory_consumption"
+    line: "opcache.memory_consumption = 96"
+    state: present
+  notify: restart apache
+
+- name: Remove test DB from MySQL
+  mysql_db: db=test state=present
+
+- name: Create Database 
+  mysql_db: "db={{ domain }} state=present"
+
+- name: Create MySQL user 
+  mysql_user:
+    name: "{{ domain }}"
+    password: "1234"
+    priv: "{{ domain }}.*:ALL"
+    host: localhost
+    state: present
+
+- name: Download PHP Composer
+  get_url:
+    url: https://getcomposer.org/installer
+    dest: /tmp/composer-installer.php
+    mode: 0755
+
+- name: Run Composer installer 
+  command: >
+    php compose-installer.php
+    chdir=/tmp
+    creates=/usr/local/bin/composer
+
+- name: Move Composer into globally-accessible location.
+  shell: >
+    mv /tmp/composer.phar /usr/local/bin/composer
+    creates=/usr/local/bin/composer
+
+
+
+
