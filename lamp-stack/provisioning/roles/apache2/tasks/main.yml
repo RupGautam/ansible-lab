@@ -1,20 +1,31 @@
 ---
-- name: A1. Update the repos 
-  apt: update_cache=yes cache_valid_time=3600
+- name: 1. Adding Ondrej Repo
+  apt_repository: repo="ppa:ondrej/php" update_cache=yes
 
-- name: 1. Install Apache
-  apt: name=apache2 state=present
-- name: 1a. Install ppa-repo 
-  apt_repository: repo="ppa:ondrej/php"
+- name: 2. Installing PHP with other dependencies
+  apt:
+    state: present
+    name:
+      - git 
+      - curl
+      - unzip
+      - apache2
+      - php-common
+      - php-cli
+      - php-gd
+      - php-curl
+      - php-json
+      - php-mysql
+      - php-mbstring
 
-- name: 1b. Update the repos 
-  apt: update_cache=yes cache_valid_time=3600
+- name: 3. Installing MySQL server
+  shell: apt-get remove mysql-server* mariadb-*
 
-- name: 2. Install PHP modules for Apache
-  apt: name=libapache2-mod-php state=present
-
-- name: 3. start Apache
-  service: name=apache2 state=restarted enabled=yes
-
-- name: 4. Install Hello World PHP script
-  copy: "src=index.php dest=/var/www/html/index.php mode=0664"
+- name: 3. Start Apache, MySQL and PHP
+  service: 
+    name: {{ item }} 
+    state: started 
+    enabled: yes
+  with_items:
+    - apache2
+    - mysql
