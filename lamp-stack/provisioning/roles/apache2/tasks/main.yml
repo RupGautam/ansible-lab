@@ -1,4 +1,5 @@
 ---
+- set_fact:
 - name: 1. Adding Ondrej Repo
   apt_repository: repo="ppa:ondrej/php" update_cache=yes
 
@@ -39,7 +40,7 @@
 - name: 6. Adding Vhost for Drupal
   template:
     src: "files/drupal.dev.conf.js"
-    dest: "/etc/apache2/sites-available/{{ domain }}.dev.conf"
+    dest: "/etc/apache2/sites-available/drupal.dev.conf"
     owner: root
     group: root
     mode: 0644
@@ -47,8 +48,8 @@
 
 - name: 7. Sym link vhost to enabled-sites
   file:
-    src: "/etc/apache2/sites-available/{{ domain }}.dev.conf"
-    dest: "/etc/apache2/sites-enabled/{{ domain }}.dev.conf"
+    src: "/etc/apache2/sites-available/drupal.dev.conf"
+    dest: "/etc/apache2/sites-enabled/drupal.dev.conf"
     state: link
   notify: restart apache
 
@@ -70,13 +71,13 @@
   mysql_db: db=test state=present
 
 - name: Create Database 
-  mysql_db: "db={{ domain }} state=present"
+  mysql_db: "db=drupal state=present"
 
 - name: Create MySQL user 
   mysql_user:
-    name: "{{ domain }}"
+    name: "drupal"
     password: "1234"
-    priv: "{{ domain }}.*:ALL"
+    priv: "drupal.*:ALL"
     host: localhost
     state: present
 
@@ -97,6 +98,56 @@
     mv /tmp/composer.phar /usr/local/bin/composer
     creates=/usr/local/bin/composer
 
+- name: Git clone drush 
+  git:
+    repo: https://github.com/drush-ops/drush.git
+    version: 8
+    dest: /opt/drush
 
+- name: Install Drush dependencies with Composer
+  shell: >
+    /usr/loca/bin/composer install
+    chdir=/opt/drush
+    creates=/opt/drush/vendor/autoload.php
+
+- name: Create Drush Sym link
+  file:
+    src: /opt/drush/drush
+    dest: /usr/local/bin/drush
+    state: link
+
+- name: Git clone Drupal core
+  git:
+    repo: https://github.com/drupal/drupal.git
+    version: '8.6.5'
+    dest: /var/www/drupal-8.6.5-dev
+
+- name: Install Drupal dependencies with Composer.
+  shell: >
+    /usr/local/bin/composer install
+    chdir=/var/www/drupal-8.6.5-dev
+    creates=/var/www/drupal-8.6.5-dev/vendor/autoload.php
+
+- name: Install Drupal.
+  command: >
+    drush si -y --site-name="{{ drupal_site_name }}"
+    --account-name=admin
+    --account-pass=admin
+    --db-url=mysql://drupal:1234@localhost/drupal
+    --root=/var/www/drupal-8.6.5-dev
+    creates=/var/www/drupal-8.6.5-dev/sites/default/settings.php
+  notify: restart apache
+
+- name: Set Settings.php permission 
+  file:
+    path: "/var/www/drupal-8.6.5-dev/sites/default/settings.php"
+    mode: 0744
+
+- name: Set Core files permission
+  file:
+    path: "/var/www/drupal-8.6.5-dev/sites/default/files"
+    mode: 0777
+    state: directory
+    recurse: yes
 
 
