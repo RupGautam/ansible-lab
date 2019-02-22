@@ -1,0 +1,18 @@
+#hostname 
+server_name: elk
+
+#Ngix listening port
+nginx_kibana_port: 80
+
+#Nginx SSL listening port
+elk_server_ssl_cert_port: 8080
+
+#Kibana access 
+kibana_user: admin
+kibana_password: admin
+
+#User define for Ngixn
+nginx_user: www-data
+
+#Define IP address 
+elk_ip: 159.203.62.174
