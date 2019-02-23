@@ -1,0 +1,38 @@
+---
+- name: Configure nginx webserver with tls
+  hosts: webservers
+  become: True
+  vars: 
+    key_file: /etc/nginx/ssl/nginx.key  
+    cert_file: /etc/nginx/ssl/nginx.crt 
+    conf_file: /etc/nginx/sites-available/default 
+    server_name: vm01 
+  tasks:  
+    - name: Install nginx 
+      apt: name=nginx update_cache=yes  
+  
+    - name: Create directories for ssl certs  
+      file: path=/etc/nginx/ssl state=directory  
+  
+    - name: Copy TLS key  
+      copy: src=files/nginx.key dest={{ key_file }}   
+      notify: restart nginx 
+  
+    - name: Copy TLS cert 
+      copy: src=files/nginx.crt dest={{ cert_file }}  
+      notify: restart nginx 
+  
+    - name: Copy nginx config file  
+      template: src=templates/nginx.conf.j2 dest={{ conf_file }}  
+      notify: restart nginx 
+  
+    - name: Enable config 
+      file: dest=/etc/nginx/sites-enabled/default src={{ conf_file }} state=link  
+      notify: restart nginx 
+  
+    - name: Copy index.html 
+      template: src=templates/index.html.j2 dest=/usr/share/nginx/html/index.html  
+  
+  handlers: 
+      - name: restart nginx 
+        service: name=nginx state=restarted   
