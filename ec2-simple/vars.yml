@@ -5,5 +5,4 @@ aws_instance_type: t2.micro
 aws_vpc_id: vpc-xxx
 aws_key_name: mykey
 aws_local_cidr_ip: abc
-aws_vpc_id: "123"
 aws_subnet_id: 123
