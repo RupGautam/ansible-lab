@@ -1,13 +1,13 @@
-  - name: Create EC2 Instance
-    ec2:
-      key_name: "{{aws_key_name}}"
-      image: "{{aws_image}}"
-      wait: yes
-      instance_type: "{{aws_instance_type}}"
-      region: "{{aws_region}}"
-      vpc_subnet_id: "{{aws_subnet_id}}"
-      id: aws102
-      state: present
-      instance_tags:
-            Name: Ubuntu Server
-      register: ec2
+- name: Create EC2 Instance
+  ec2:
+    key_name: "{{aws_key_name}}"
+    image: "{{aws_image}}"
+    wait: yes
+    instance_type: "{{aws_instance_type}}"
+    region: "{{aws_region}}"
+    vpc_subnet_id: "{{aws_subnet_id}}"
+    id: aws102
+    state: present
+    instance_tags:
+      Name: Ubuntu Server
+  register: ec2

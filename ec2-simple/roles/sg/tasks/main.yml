@@ -1,15 +1,15 @@
 ---
 - name: Create SG
   ec2_group:
-    name: remote_access
-    description: "Remote Access Security Group"
-    region: "{{aws_region}}"
-    vpc_id: "{{aws_vpc_id}}"
+    name: "web-test"
+    description: "Remote Access Security Group for test"
+    region: "{{ aws_region }}"
+    vpc_id: "{{ aws_vpc_id }}"
     rules:
       - proto: tcp
         from_port: 22
         to_port: 22
-        cidr_ip: "{{aws_local_cidr_ip}}"
+        cidr_ip: "{{ aws_local_cidr_ip }}"
       - proto: all
         group_name: remote_access
     rules_egress:
