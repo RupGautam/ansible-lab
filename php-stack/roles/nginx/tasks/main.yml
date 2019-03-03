@@ -1,0 +1,27 @@
+---
+# tasks file for nginx
+- name: Install Nginx webserver
+  apt:
+    name: nginx
+    state: absent
+  notify: Restart Nginx
+  tags:
+    - nginx 
+
+- name: Copy the config files
+  template:
+    src: templates/nginx.conf
+    dest: "/etc/nginx/sites-available/default"
+  tags:
+    - nginx
+  notify: Restart Nginx
+
+
+- name: Symlinking nginx conf files
+  file:
+    src: "/etc/nginx/sites-available/default"
+    dest: "/etc/nginx/sites-enabled/default"
+    state: link
+  tags:
+    - nginx
+  notify: Restart Nginx

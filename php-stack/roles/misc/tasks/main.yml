@@ -1,0 +1,7 @@
+---
+# tasks file for misc
+- name: Update apt cache.
+  apt: update_cache=yes cache_valid_time=86400
+
+- name: Install py-sql needed for mysql setup
+  pip: name=MySQL-python

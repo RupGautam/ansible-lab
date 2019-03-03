@@ -1,0 +1,22 @@
+---
+ansible_ssh_user: "root"
+current_user: "ansible"
+server_name: "ansible"
+
+repo_git_url: "https://github.com/witscher/ansible-talk-code.git"
+php_version: 7.2
+app_work_dir: /var/www/ansible/
+#mysql config
+mysql_host: "mysql_host"
+mysql_db: app_name
+mysql_user: sql_user
+mysql_pass: sql_pass
+
+#other config
+cache_driver: file
+session_driver: file
+app_env: production
+app_debug: false
+app_key: "your_app_key"
+app_name: "app_name"
+app_url: "your_app_url"
